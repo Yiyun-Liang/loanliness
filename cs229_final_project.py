@@ -23,8 +23,6 @@ def train_lr(x, y, rand_state=229, solver='liblinear',
         return clf_lr, clf_acc
     return clf_lr
 
-
-
 def train_rand_forest(x, y, n_est=100, max_depth=3, rand_state=229, test=None):
     clf_rf = RandomForestClassifier(n_estimators=n_est, max_depth=max_depth,
         random_state=rand_state)
@@ -68,13 +66,15 @@ if __name__ == '__main__':
     nn_acc_ls = []
     kf = KFold(n_splits=10, shuffle=True)
     print('Training is starting ... ')
-    print(x.shape)
+    print('shape of x: {}'.format(x.shape))
     x, y, x_test, y_test = upsample_pos(x, y, upsample=True)
+    print('Percentage of zeros in trainset input: {}'.format(np.count_nonzero(x==0)/x.size))
+    print('Number of positive examples: {}, negative: {}'.format((y==1).sum(), (y==0).sum()))
     # for train, test in kf.split(x):
     # x_train, x_test, y_train, y_test = x[train], x[test], y[train], y[test]
     # Logistic Regression
-    # clf_lr, lr_acc = train_lr(x, y, test=[x_test, y_test])
-    # lr_acc_ls.append(lr_acc)
+    clf_lr, lr_acc = train_lr(x, y, test=[x_test, y_test])
+    lr_acc_ls.append(lr_acc)
     # Random Forest
     clf_rf, rf_acc = train_rand_forest(x, y, test=[x_test, y_test])
     rf_acc_ls.append(rf_acc)

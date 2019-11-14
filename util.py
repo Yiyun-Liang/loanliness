@@ -4,12 +4,12 @@ import pickle
 from collections import Counter
 from imblearn.over_sampling import SMOTE
 import sklearn
+from sklearn.metrics import classification_report
 
 def load_pickle_file(file_name):
     with open(file_name, 'rb') as f:
         data = pickle.load(f)
     return data
-
 
 def count_empty_percentage(col):
     return Counter(col)['']/col.shape[0]
@@ -100,12 +100,15 @@ def report_test(clf, test, clf_name):
     x_test, y_test = test
     clf_acc = clf.score(x_test, y_test)
     print('The accuracy for ' + clf_name + ' classifier is: '+ str(clf_acc))
+    y_pred = clf.predict(x_test)
+    print(classification_report(y_test, y_pred))
     return clf_acc
 
 def upsample_pos(x, y, upsample=True):
     x = sklearn.preprocessing.normalize(x)
     # print(x[:2])
     # raise
+    # less positive, more negative
     all_pos = np.where(y == 1)
     x_all_pos = x[all_pos[0]]
     y_all_pos = y[all_pos[0]]
@@ -114,6 +117,7 @@ def upsample_pos(x, y, upsample=True):
     y_test = y_all_pos[:cut_len]
     x_all_pos = x_all_pos[cut_len + 1:]
     y_all_pos = y_all_pos[cut_len + 1:]
+
     all_neg = np.where(y == 0)
     x_all_neg = x[all_neg[0]]
     y_all_neg = y[all_neg[0]]
@@ -121,6 +125,7 @@ def upsample_pos(x, y, upsample=True):
     y_test = np.concatenate((y_test, y_all_neg[:cut_len]), axis=0)
     x_all_neg = x_all_neg[cut_len + 1:]
     y_all_neg = y_all_neg[cut_len + 1:]
+
     if upsample:
         rand_ind = np.arange(len(x_all_neg))
         np.random.shuffle(rand_ind)
@@ -131,12 +136,17 @@ def upsample_pos(x, y, upsample=True):
         sm = SMOTE(random_state=233333, sampling_strategy='minority', k_neighbors=100)
         x_train, y_train = sm.fit_sample(x_all_new, y_all_new)
     else:
+        # undersample: balance train set
+        x_all_neg = x_all_neg[:len(x_all_pos)]
+        y_all_neg = y_all_neg[:len(x_all_pos)]
         x_train = np.concatenate((x_all_neg, x_all_pos), axis=0)
         y_train = np.concatenate((y_all_neg, y_all_pos), axis=0)
+    
     rand_shuffle = np.arange(len(x_train))
     np.random.shuffle(rand_shuffle)
     x_train = x_train[rand_shuffle]
     y_train = y_train[rand_shuffle]
+    
     rand_shuffle_test = np.arange(len(x_test))
     np.random.shuffle(rand_shuffle_test)
     x_test = x_test[rand_shuffle_test]
