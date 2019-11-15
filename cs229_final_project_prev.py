@@ -7,12 +7,10 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neural_network import MLPClassifier
 from sklearn.feature_selection import RFE
-# from lightgbm import LGBMClassifier
 
 from util import load_pickle_file
 from util import report_test
 from util import upsample_pos
-from util import data_preprocessing
 
 
 def train_lr(x, y, rand_state=229, solver='liblinear',
@@ -41,6 +39,7 @@ def train_nb(x, y, test=None):
         return clf_nb, clf_acc
     return clf_nb
 
+
 def train_mlp(x, y, solver='adam', alpha=1e-4, hls=(10, 40, 40),
         rand_state=229, test=None):
     clf_nn = MLPClassifier(
@@ -52,59 +51,19 @@ def train_mlp(x, y, solver='adam', alpha=1e-4, hls=(10, 40, 40),
         return clf_nn, clf_acc
     return clf_nn
 
-def train_lgbm(x, y, test=None):
-    clf_lgbm = LGBMClassifier(
-        nthread=4,
-        n_estimators=10000,
-        learning_rate=0.02,
-        num_leaves=34,
-        colsample_bytree=0.9497036,
-        subsample=0.8715623,
-        max_depth=8,
-        reg_alpha=0.041545473,
-        reg_lambda=0.0735294,
-        min_split_gain=0.0222415,
-        min_child_weight=39.3259775,
-        silent=-1,
-        verbose=-1, )
-    clf_lgbm.fit(x, y, eval_set=[(x, y), (valid_x, valid_y)],
-            eval_metric='auc', verbose=100, early_stopping_rounds=100)
-
-    if test is not None:
-        clf_acc = report_test(clf_lgbm, test, "LGBM")
-        return clf_lgbm, clf_acc
-    return clf_lgbm
 
 if __name__ == '__main__':
     print('\n')
-    training_data_path = 'training_data_new.pkl'
-    label_path = 'training_lbl_new.pkl'
+    training_data_path = 'training_data_processed.pkl'
     data = load_pickle_file(training_data_path)
-    label = load_pickle_file(label_path)
     print('Training data has been successfully loaded')
-    '''
     y = data[:, 1].astype(np.int)
     x = data[:, 2:]
-    '''
 
-    y = label
-    x = data
-    entries = list(data.columns)
-    x = np.array(x)
-    # print(x[0])
-    # print(y.shape)
-    # raise
-    new_x, new_y = data_preprocessing(x, y)
-    x, revised_entries, value_dict = data_preprocessing(entries, np.array(data), test=True)
-
-    print(x.shape)
-
-    '''
     lr_acc_ls = []
     rf_acc_ls = []
     nb_acc_ls = []
     nn_acc_ls = []
-    lgbm_acc_ls = []
     kf = KFold(n_splits=10, shuffle=True)
     print('Training is starting ... ')
     print('shape of x: {}'.format(x.shape))
@@ -122,15 +81,9 @@ if __name__ == '__main__':
     # Naive Bayes
     clf_nb, nb_acc = train_nb(x, y, test=[x_test, y_test])
     nb_acc_ls.append(nb_acc)
-    
     # Neural Network
     clf_mlp, mlp_acc = train_mlp(x, y, test=[x_test, y_test])
     nn_acc_ls.append(mlp_acc)
-    
-    # LGBMClassifier
-    clf_lgbm, lgbm_acc = train_lgbm(x, y, test=[x_test, y_test])
-    lgbm_acc_ls.append(mlp_acc)
-    '''
 
 
 

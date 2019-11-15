@@ -14,9 +14,6 @@ def load_pickle_file(file_name):
 def count_empty_percentage(col):
     return Counter(col)['']/col.shape[0]
 
-def count_nan_percentage(col):
-    return Counter(col)['nan'] / col.shape[0]
-
 def get_possible_values(col):
     return list(set(col))
 
@@ -30,45 +27,7 @@ def save_pickle_file(data, file_name):
     with open(file_name, 'wb') as f:
         pickle.dump(data, f)
 
-def data_preprocessing(x, y, thres=0.9):
-    x = x[1:]
-    threshold = thres * len(x)
-    should_keep = []
-    # print(None in x)
-    print(Counter(x[0])['nan'])
-    print(np.unique(x)['nan'])
-    raise
-    for col in range(len(x[0])):
-        # curr_col = Counter(col)['nan']
-
-        # print(np.count_nonzero(x == 'nan'))
-        # raise
-        # curr_col = len(np.where(x[:, col:col + 1].transpose() != 'nan')[0])
-        if curr_col >= threshold:
-            should_keep.append(col)
-    print(should_keep)
-    x = x[:, np.array(should_keep)]
-    y = y[np.array(should_keep)]
-    should_del = []
-    for row in range(len(x)):
-        if 'nan' in x[row]:
-            should_del.append(row)
-    np.delete(x, np.array(should_del), 0)
-    np.delete(y, np.array(should_del), 0)
-    print(x.shape)
-    print(y.shape)
-    raise
-
-    # x[np.where(x > 10**8)[0]] = np.max(x[np.where(x < 10**8)[0]])
-    # print(x.shape)
-
-
-
-def _data_preprocessing(entries, data, test = False):
-    print(len(entries))
-    print(data.shape)
-    print()
-    raise
+def data_preprocessing(entries, data, test = False):
     value_dict = dict()               # Store the possible values of the col
     processed_data = np.copy(data)
     if not test:
@@ -78,36 +37,27 @@ def _data_preprocessing(entries, data, test = False):
     remove_row_ls = []
     remove_col_ls = []
     for i in range(start_entry, data.shape[1]):
-        print(i)
         # Assign values to string elements
-        '''
         col = data[:, i]
         possible_values = sorted(get_possible_values(col))
-        if 'nan' in possible_values:
-            possible_values.remove('nan')
+        if '' in possible_values:
+            possible_values.remove('')
         if len(possible_values) < 100:
             value_dict[entries[i]] = possible_values
             for j in range(data.shape[0]):
-                if data[j, i] != 'nan':
+                if data[j, i] != '':
                     value = possible_values.index(data[j, i])
                     processed_data[j, i] = value
-        '''
     print('Preprocessing: value assignment has been finished.')
     for i in range(start_entry, data.shape[1]):
         # Add the column with too many empty entries to remove_col_ls
         col = data[:, i]
-        # if count_empty_percentage(col) > 0.1:
-        print(count_nan_percentage(col))
-        print(Counter(col)['nan'])
-        print(col)
-        if count_nan_percentage(col) > 0.1:
+        if count_empty_percentage(col) > 0.1:
             remove_col_ls.append(i)
         # Add the row with empty entries to remove_row_ls
-        #elif count_empty_percentage(col) != 0:
-        elif count_nan_percentage(col) != 0:
-            print('nan is 0 percent')
+        elif count_empty_percentage(col) != 0:
             for j in range(data.shape[0]):
-                if data[j, i] == 'nan':
+                if data[j, i] == '':
                     remove_row_ls.append(j)
     print('Preprocessing: removal row and col numbers has been stored.')
     # Remove the data points and features which do not satisfy requiremetns
