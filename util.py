@@ -5,6 +5,8 @@ from collections import Counter
 from imblearn.over_sampling import SMOTE
 import sklearn
 from sklearn.metrics import classification_report
+from sklearn.impute import SimpleImputer
+import pandas as pd
 
 def load_pickle_file(file_name):
     with open(file_name, 'rb') as f:
@@ -30,98 +32,49 @@ def save_pickle_file(data, file_name):
     with open(file_name, 'wb') as f:
         pickle.dump(data, f)
 
-def data_preprocessing(x, y, thres=0.9):
-    x = x[1:]
+def data_preprocessing(x, y, thres=0.3):
+    x = pd.DataFrame(data=x[:, 1:], index=x[:, 0])
+    x = x.replace([np.inf], 1e10)
+    x = x.replace([-np.inf], -1e10)
+    x = x.to_numpy()
+    # imp = SimpleImputer(missing_values=np.nan, strategy='mean')
+    # imp = imp.fit(x)
+    # x = imp.transform(x)
+    # print(x.shape)
+    # print(y.shape)
+    # save_pickle_file(x, "training_data_processed.pkl")
+    # save_pickle_file(y, "training_lbl_processed.pkl")
+    # raise
+
+    # x = x[:, 1:]
     threshold = thres * len(x)
     should_keep = []
-    # print(None in x)
-    print(Counter(x[0])['nan'])
-    print(np.unique(x)['nan'])
-    raise
-    for col in range(len(x[0])):
-        # curr_col = Counter(col)['nan']
-
-        # print(np.count_nonzero(x == 'nan'))
-        # raise
-        # curr_col = len(np.where(x[:, col:col + 1].transpose() != 'nan')[0])
-        if curr_col >= threshold:
+    for col in range(0, len(x[0])):
+        curr_col = np.sum(np.isnan(x[:, col]))
+        if curr_col <= threshold:
             should_keep.append(col)
-    print(should_keep)
     x = x[:, np.array(should_keep)]
-    y = y[np.array(should_keep)]
-    should_del = []
+    should_keep = []
+    # np.where(x==np.inf, 1e10, x)
     for row in range(len(x)):
-        if 'nan' in x[row]:
-            should_del.append(row)
-    np.delete(x, np.array(should_del), 0)
-    np.delete(y, np.array(should_del), 0)
+        # curr_mean = np.mean(x[:, col])
+        # for row in range(len(x)):
+        #     if np.isnan(x[row, col]):
+        #         x[row, col] = curr_mean
+        if np.sum(np.isnan(x[row, :])) == 0:
+            should_keep.append(row)
+    x = x[np.array(should_keep), :]
+    y = y[np.array(should_keep)]
+    # x[x >= 1e10] = 1e10
+    # x[x <= -1 * 1e10] = -1 * 1e10
     print(x.shape)
     print(y.shape)
+    save_pickle_file(x, "training_data_processed.pkl")
+    save_pickle_file(y, "training_lbl_processed.pkl")
     raise
-
-    # x[np.where(x > 10**8)[0]] = np.max(x[np.where(x < 10**8)[0]])
-    # print(x.shape)
+    return x, y
 
 
-
-def _data_preprocessing(entries, data, test = False):
-    print(len(entries))
-    print(data.shape)
-    print()
-    raise
-    value_dict = dict()               # Store the possible values of the col
-    processed_data = np.copy(data)
-    if not test:
-        start_entry = 2
-    else:
-        start_entry = 1
-    remove_row_ls = []
-    remove_col_ls = []
-    for i in range(start_entry, data.shape[1]):
-        print(i)
-        # Assign values to string elements
-        '''
-        col = data[:, i]
-        possible_values = sorted(get_possible_values(col))
-        if 'nan' in possible_values:
-            possible_values.remove('nan')
-        if len(possible_values) < 100:
-            value_dict[entries[i]] = possible_values
-            for j in range(data.shape[0]):
-                if data[j, i] != 'nan':
-                    value = possible_values.index(data[j, i])
-                    processed_data[j, i] = value
-        '''
-    print('Preprocessing: value assignment has been finished.')
-    for i in range(start_entry, data.shape[1]):
-        # Add the column with too many empty entries to remove_col_ls
-        col = data[:, i]
-        # if count_empty_percentage(col) > 0.1:
-        print(count_nan_percentage(col))
-        print(Counter(col)['nan'])
-        print(col)
-        if count_nan_percentage(col) > 0.1:
-            remove_col_ls.append(i)
-        # Add the row with empty entries to remove_row_ls
-        #elif count_empty_percentage(col) != 0:
-        elif count_nan_percentage(col) != 0:
-            print('nan is 0 percent')
-            for j in range(data.shape[0]):
-                if data[j, i] == 'nan':
-                    remove_row_ls.append(j)
-    print('Preprocessing: removal row and col numbers has been stored.')
-    # Remove the data points and features which do not satisfy requiremetns
-    remove_col_set = set(remove_col_ls)
-    remove_row_set = set(remove_row_ls)
-    print(len(remove_row_set))
-    revised_entries = np.copy(entries)
-    processed_data = np.delete(processed_data, list(remove_col_set), 1)
-    print('Preprocessing: cols have been removed.')
-    processed_data = np.delete(processed_data, list(remove_row_set), 0)
-    print('Preprocessing: rows have been removed.')
-    np.delete(revised_entries, list(remove_col_set))
-    print('Preprocessing: preprocessing has been finished.')
-    return processed_data.astype(np.float), revised_entries, value_dict
 
 
 def read_data(file_path):
@@ -131,7 +84,6 @@ def read_data(file_path):
         for row in readCSV:
             rows.append(row)
     return rows
-
 
 def get_processed_data(file_path, pkl_file_name):
     entries = np.array(read_data(file_path)[0])
@@ -155,14 +107,11 @@ def report_test(clf, test, clf_name):
     return clf_acc
 
 def upsample_pos(x, y, upsample=True):
-    x = sklearn.preprocessing.normalize(x)
-    # print(x[:2])
-    # raise
     # less positive, more negative
     all_pos = np.where(y == 1)
     x_all_pos = x[all_pos[0]]
     y_all_pos = y[all_pos[0]]
-    cut_len = len(x_all_pos) // 20
+    cut_len = len(x_all_pos) // 10
     x_test = x_all_pos[:cut_len]
     y_test = y_all_pos[:cut_len]
     x_all_pos = x_all_pos[cut_len + 1:]
@@ -179,11 +128,11 @@ def upsample_pos(x, y, upsample=True):
     if upsample:
         rand_ind = np.arange(len(x_all_neg))
         np.random.shuffle(rand_ind)
-        x_neg_new = x_all_neg[rand_ind[:10*len(x_all_pos)]]
-        y_neg_new = y_all_neg[rand_ind[:10*len(x_all_pos)]]
+        x_neg_new = x_all_neg[rand_ind[:3*len(x_all_pos)]]
+        y_neg_new = y_all_neg[rand_ind[:3*len(x_all_pos)]]
         x_all_new = np.concatenate((x_neg_new, x_all_pos), axis=0)
         y_all_new = np.concatenate((y_neg_new, y_all_pos), axis=0)
-        sm = SMOTE(random_state=233333, sampling_strategy='minority', k_neighbors=100)
+        sm = SMOTE(random_state=233333, sampling_strategy=1.0, k_neighbors=100)
         x_train, y_train = sm.fit_sample(x_all_new, y_all_new)
     else:
         # undersample: balance train set

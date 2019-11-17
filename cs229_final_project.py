@@ -7,7 +7,9 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neural_network import MLPClassifier
 from sklearn.feature_selection import RFE
-# from lightgbm import LGBMClassifier
+from sklearn.impute import SimpleImputer
+import pandas as pd
+from lightgbm import LGBMClassifier
 
 from util import load_pickle_file
 from util import report_test
@@ -67,8 +69,7 @@ def train_lgbm(x, y, test=None):
         min_child_weight=39.3259775,
         silent=-1,
         verbose=-1, )
-    clf_lgbm.fit(x, y, eval_set=[(x, y), (valid_x, valid_y)],
-            eval_metric='auc', verbose=100, early_stopping_rounds=100)
+    clf_lgbm.fit(x, y, verbose=100)
 
     if test is not None:
         clf_acc = report_test(clf_lgbm, test, "LGBM")
@@ -76,9 +77,10 @@ def train_lgbm(x, y, test=None):
     return clf_lgbm
 
 if __name__ == '__main__':
-    print('\n')
-    training_data_path = 'training_data_new.pkl'
-    label_path = 'training_lbl_new.pkl'
+    # training_data_path = 'training_data_new.pkl'
+    # label_path = 'training_lbl_new.pkl'
+    training_data_path = 'training_data_processed.pkl'
+    label_path = 'training_lbl_processed.pkl'
     data = load_pickle_file(training_data_path)
     label = load_pickle_file(label_path)
     print('Training data has been successfully loaded')
@@ -87,50 +89,53 @@ if __name__ == '__main__':
     x = data[:, 2:]
     '''
 
-    y = label
+    y = np.array(label)
     x = data
-    entries = list(data.columns)
+    # entries = list(data.columns)
     x = np.array(x)
-    # print(x[0])
-    # print(y.shape)
-    # raise
-    new_x, new_y = data_preprocessing(x, y)
-    x, revised_entries, value_dict = data_preprocessing(entries, np.array(data), test=True)
+    # x, y = data_preprocessing(x, y)
 
-    print(x.shape)
-
-    '''
     lr_acc_ls = []
     rf_acc_ls = []
     nb_acc_ls = []
     nn_acc_ls = []
     lgbm_acc_ls = []
-    kf = KFold(n_splits=10, shuffle=True)
+    # kf = KFold(n_splits=1, shuffle=True)
     print('Training is starting ... ')
     print('shape of x: {}'.format(x.shape))
+    
     x, y, x_test, y_test = upsample_pos(x, y, upsample=True)
+    # save_pickle_file(x, "training_data_up.pkl")
+    # save_pickle_file(y, "training_lbl_up.pkl")
+    # save_pickle_file(x_test, "testing_data_up.pkl")
+    # save_pickle_file(y_test, "testing_lbl_up.pkl")
+    # raise
     print('Percentage of zeros in trainset input: {}'.format(np.count_nonzero(x==0)/x.size))
     print('Number of positive examples: {}, negative: {}'.format((y==1).sum(), (y==0).sum()))
     # for train, test in kf.split(x):
-    # x_train, x_test, y_train, y_test = x[train], x[test], y[train], y[test]
+    print("here")
+    x_train, x_test, y_train, y_test = x, x_test, y, y_test
+    print(x_train.shape)
+    print(x_test.shape)
+    print(len(y_test==1))
+    print(len(y_test==0))
     # Logistic Regression
-    clf_lr, lr_acc = train_lr(x, y, test=[x_test, y_test])
-    lr_acc_ls.append(lr_acc)
+    # clf_lr, lr_acc = train_lr(x_train, y_train, test=[x_test, y_test])
+    # lr_acc_ls.append(lr_acc)
     # Random Forest
-    clf_rf, rf_acc = train_rand_forest(x, y, test=[x_test, y_test])
+    clf_rf, rf_acc = train_rand_forest(x_train, y_train, test=[x_test, y_test])
     rf_acc_ls.append(rf_acc)
-    # Naive Bayes
-    clf_nb, nb_acc = train_nb(x, y, test=[x_test, y_test])
-    nb_acc_ls.append(nb_acc)
+    # # Naive Bayes
+    # clf_nb, nb_acc = train_nb(x_train, y_train, test=[x_test, y_test])
+    # nb_acc_ls.append(nb_acc)
     
-    # Neural Network
-    clf_mlp, mlp_acc = train_mlp(x, y, test=[x_test, y_test])
-    nn_acc_ls.append(mlp_acc)
+    # # Neural Network
+    # clf_mlp, mlp_acc = train_mlp(x_train, y_train, test=[x_test, y_test])
+    # nn_acc_ls.append(mlp_acc)
     
     # LGBMClassifier
-    clf_lgbm, lgbm_acc = train_lgbm(x, y, test=[x_test, y_test])
-    lgbm_acc_ls.append(mlp_acc)
-    '''
+    clf_lgbm, lgbm_acc = train_lgbm(x_train, y_train, test=[x_test, y_test])
+    lgbm_acc_ls.append(lgbm_acc)
 
 
 
