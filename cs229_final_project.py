@@ -15,6 +15,7 @@ from util import load_pickle_file
 from util import report_test
 from util import upsample_pos
 from util import data_preprocessing
+from util import rand_train_test
 
 
 def train_lr(x, y, rand_state=229, solver='liblinear',
@@ -28,8 +29,9 @@ def train_lr(x, y, rand_state=229, solver='liblinear',
     return clf_lr
 
 def train_rand_forest(x, y, n_est=100, max_depth=3, rand_state=229, test=None):
-    clf_rf = RandomForestClassifier(n_estimators=n_est, max_depth=max_depth,
-        random_state=rand_state)
+    # clf_rf = RandomForestClassifier(n_estimators=n_est, max_depth=max_depth,
+    #     random_state=rand_state)
+    clf_rf = RandomForestClassifier(n_estimators = 100, random_state = 50, n_jobs = -1)
     clf_rf.fit(x, y)
     if test is not None:
         clf_acc = report_test(clf_rf, test, "random forest")
@@ -37,13 +39,13 @@ def train_rand_forest(x, y, n_est=100, max_depth=3, rand_state=229, test=None):
     return clf_rf
 
 def train_nb(x, y, test=None):
-    clf_nb = GaussianNB(var_smoothing=1e-7).fit(x, y)
+    clf_nb = GaussianNB().fit(x, y)
     if test is not None:
         clf_acc = report_test(clf_nb, test, "Gaussian Naive Bayes")
         return clf_nb, clf_acc
     return clf_nb
 
-def train_mlp(x, y, solver='adam', alpha=1e-4, hls=(10, 40, 40),
+def train_mlp(x, y, solver='lbfgs', alpha=1e-4, hls=(10, 40, 40),
         rand_state=229, test=None):
     clf_nn = MLPClassifier(
         solver=solver, alpha=alpha, hidden_layer_sizes=hls,
@@ -79,8 +81,10 @@ def train_lgbm(x, y, test=None):
 if __name__ == '__main__':
     # training_data_path = 'training_data_new.pkl'
     # label_path = 'training_lbl_new.pkl'
-    training_data_path = 'training_data_processed.pkl'
-    label_path = 'training_lbl_processed.pkl'
+    # training_data_path = './data_processed/training_data_processed.pkl'
+    # label_path = './data_processed/training_lbl_processed.pkl'
+    training_data_path = './data_processed/training_data.pkl'
+    label_path = './data_processed/training_lbl.pkl'
     data = load_pickle_file(training_data_path)
     label = load_pickle_file(label_path)
     print('Training data has been successfully loaded')
@@ -104,7 +108,8 @@ if __name__ == '__main__':
     print('Training is starting ... ')
     print('shape of x: {}'.format(x.shape))
     
-    x, y, x_test, y_test = upsample_pos(x, y, upsample=True)
+    # x, y, x_test, y_test = upsample_pos(x, y, upsample=False)
+    x, y, x_test, y_test = rand_train_test(x, y)
     # save_pickle_file(x, "training_data_up.pkl")
     # save_pickle_file(y, "training_lbl_up.pkl")
     # save_pickle_file(x_test, "testing_data_up.pkl")
@@ -120,18 +125,18 @@ if __name__ == '__main__':
     print(len(y_test==1))
     print(len(y_test==0))
     # Logistic Regression
-    # clf_lr, lr_acc = train_lr(x_train, y_train, test=[x_test, y_test])
-    # lr_acc_ls.append(lr_acc)
+    clf_lr, lr_acc = train_lr(x_train, y_train, test=[x_test, y_test])
+    lr_acc_ls.append(lr_acc)
     # Random Forest
     clf_rf, rf_acc = train_rand_forest(x_train, y_train, test=[x_test, y_test])
     rf_acc_ls.append(rf_acc)
     # # Naive Bayes
-    # clf_nb, nb_acc = train_nb(x_train, y_train, test=[x_test, y_test])
-    # nb_acc_ls.append(nb_acc)
+    clf_nb, nb_acc = train_nb(x_train, y_train, test=[x_test, y_test])
+    nb_acc_ls.append(nb_acc)
     
     # # Neural Network
-    # clf_mlp, mlp_acc = train_mlp(x_train, y_train, test=[x_test, y_test])
-    # nn_acc_ls.append(mlp_acc)
+    clf_mlp, mlp_acc = train_mlp(x_train, y_train, test=[x_test, y_test])
+    nn_acc_ls.append(mlp_acc)
     
     # LGBMClassifier
     clf_lgbm, lgbm_acc = train_lgbm(x_train, y_train, test=[x_test, y_test])

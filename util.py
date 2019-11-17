@@ -33,7 +33,8 @@ def save_pickle_file(data, file_name):
         pickle.dump(data, f)
 
 def data_preprocessing(x, y, thres=0.3):
-    x = pd.DataFrame(data=x[:, 1:], index=x[:, 0])
+    # x = pd.DataFrame(data=x[:, 1:], index=x[:, 0])
+    x = pd.DataFrame(data=x)
     x = x.replace([np.inf], 1e10)
     x = x.replace([-np.inf], -1e10)
     x = x.to_numpy()
@@ -103,21 +104,25 @@ def report_test(clf, test, clf_name):
     clf_acc = clf.score(x_test, y_test)
     print('The accuracy for ' + clf_name + ' classifier is: '+ str(clf_acc))
     y_pred = clf.predict(x_test)
+    print("Prediction Positive Number: " + str(np.sum(y_pred == 1)) + " True Number: " + str(np.sum(y_test == 1)))
+    print("Prediction Negative Number: " + str(np.sum(y_pred == 0)) + " True Number: " + str(np.sum(y_test == 0)))
     print(classification_report(y_test, y_pred))
     return clf_acc
 
 def upsample_pos(x, y, upsample=True):
     # less positive, more negative
     all_pos = np.where(y == 1)
+    print(len(all_pos[0]))
     x_all_pos = x[all_pos[0]]
     y_all_pos = y[all_pos[0]]
-    cut_len = len(x_all_pos) // 10
+    cut_len = len(x_all_pos) // 5
     x_test = x_all_pos[:cut_len]
     y_test = y_all_pos[:cut_len]
     x_all_pos = x_all_pos[cut_len + 1:]
     y_all_pos = y_all_pos[cut_len + 1:]
 
     all_neg = np.where(y == 0)
+    print(len(all_neg[0]))
     x_all_neg = x[all_neg[0]]
     y_all_neg = y[all_neg[0]]
     x_test = np.concatenate((x_test, x_all_neg[:cut_len]), axis=0)
@@ -128,16 +133,16 @@ def upsample_pos(x, y, upsample=True):
     if upsample:
         rand_ind = np.arange(len(x_all_neg))
         np.random.shuffle(rand_ind)
-        x_neg_new = x_all_neg[rand_ind[:3*len(x_all_pos)]]
-        y_neg_new = y_all_neg[rand_ind[:3*len(x_all_pos)]]
+        x_neg_new = x_all_neg[rand_ind[:2*len(x_all_pos)]]
+        y_neg_new = y_all_neg[rand_ind[:2*len(x_all_pos)]]
         x_all_new = np.concatenate((x_neg_new, x_all_pos), axis=0)
         y_all_new = np.concatenate((y_neg_new, y_all_pos), axis=0)
-        sm = SMOTE(random_state=233333, sampling_strategy=1.0, k_neighbors=100)
+        sm = SMOTE(random_state=233333, sampling_strategy=1.0, k_neighbors=1000)
         x_train, y_train = sm.fit_sample(x_all_new, y_all_new)
     else:
         # undersample: balance train set
-        x_all_neg = x_all_neg[:len(x_all_pos)]
-        y_all_neg = y_all_neg[:len(x_all_pos)]
+        x_all_neg = x_all_neg[:int(1.5*len(x_all_pos))]
+        y_all_neg = y_all_neg[:int(1.5*len(x_all_pos))]
         x_train = np.concatenate((x_all_neg, x_all_pos), axis=0)
         y_train = np.concatenate((y_all_neg, y_all_pos), axis=0)
     
@@ -151,6 +156,19 @@ def upsample_pos(x, y, upsample=True):
     x_test = x_test[rand_shuffle_test]
     y_test = y_test[rand_shuffle_test]
     return x_train, y_train, x_test, y_test
+
+
+def rand_train_test(x, y):
+    cut_len = len(x) // 5
+    rand_ind = np.arange(len(x))
+    np.random.shuffle(rand_ind)
+    x_train = x[rand_ind[cut_len:]]
+    y_train = y[rand_ind[cut_len:]]
+    x_test = x[rand_ind[:cut_len]]
+    y_test = y[rand_ind[:cut_len]]
+    return x, y, x_test, y_test
+
+
 
 
 
