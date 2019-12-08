@@ -21,7 +21,8 @@ from util import rand_train_test
 def train_lr(x, y, rand_state=229, solver='liblinear',
         max_iter=10000, test=None):
     clf_lr = LogisticRegression(
-        random_state=rand_state, solver=solver, max_iter=max_iter)
+        random_state=rand_state, solver=solver, max_iter=max_iter, C=0.0001)
+    # clf_lr = LogisticRegression(C = 0.0001)
     clf_lr.fit(x, y)
     if test is not None:
         clf_acc = report_test(clf_lr, test, "logistic regression")
@@ -79,12 +80,12 @@ def train_lgbm(x, y, test=None):
     return clf_lgbm
 
 if __name__ == '__main__':
-    # training_data_path = 'training_data_new.pkl'
-    # label_path = 'training_lbl_new.pkl'
+    training_data_path = './data_processed/training_data_new.pkl'
+    label_path = './data_processed/training_lbl_new.pkl'
     # training_data_path = './data_processed/training_data_processed.pkl'
     # label_path = './data_processed/training_lbl_processed.pkl'
-    training_data_path = './data_processed/training_data.pkl'
-    label_path = './data_processed/training_lbl.pkl'
+    # training_data_path = './data_processed/training_data.pkl'
+    # label_path = './data_processed/training_lbl.pkl'
     data = load_pickle_file(training_data_path)
     label = load_pickle_file(label_path)
     print('Training data has been successfully loaded')
@@ -95,8 +96,10 @@ if __name__ == '__main__':
 
     y = np.array(label)
     x = data
-    # entries = list(data.columns)
+    entries = list(data.columns)
     x = np.array(x)
+    print(x.shape)
+    raise
     # x, y = data_preprocessing(x, y)
 
     lr_acc_ls = []
@@ -108,8 +111,8 @@ if __name__ == '__main__':
     print('Training is starting ... ')
     print('shape of x: {}'.format(x.shape))
     
-    # x, y, x_test, y_test = upsample_pos(x, y, upsample=False)
-    x, y, x_test, y_test = rand_train_test(x, y)
+    x, y, x_test, y_test = upsample_pos(x, y, upsample=True)
+    # x, y, x_test, y_test = rand_train_test(x, y)
     # save_pickle_file(x, "training_data_up.pkl")
     # save_pickle_file(y, "training_lbl_up.pkl")
     # save_pickle_file(x_test, "testing_data_up.pkl")
