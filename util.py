@@ -138,8 +138,8 @@ def upsample_pos(x, y, upsample=True):
         x_train, y_train = sm.fit_sample(x_all_new, y_all_new)
     else:
         # undersample: balance train set
-        x_all_neg = x_all_neg[:int(5*len(x_all_pos))]
-        y_all_neg = y_all_neg[:int(5*len(x_all_pos))]
+        x_all_neg = x_all_neg[:int(len(x_all_pos))]
+        y_all_neg = y_all_neg[:int(len(x_all_pos))]
         x_train = np.concatenate((x_all_neg, x_all_pos), axis=0)
         y_train = np.concatenate((y_all_neg, y_all_pos), axis=0)
     

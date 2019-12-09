@@ -107,12 +107,12 @@ def train_lgbm(x, y, test=None):
     return clf_lgbm
 
 if __name__ == '__main__':
-    training_data_path = './data_processed/training_data.pkl'
-    label_path = './data_processed/training_lbl.pkl'
+    training_data_path = './data_preprocessed/training_data.pkl'
+    label_path = './data_preprocessed/training_lbl.pkl'
     # training_data_path = './data_processed/training_data_processed.pkl'
     # label_path = './data_processed/training_lbl_processed.pkl'
-    training_data_path = './data_preprocessed/train_bureau_raw_data.pkl'
-    label_path = './data_preprocessed/train_bureau_raw_lbl.pkl'
+    # training_data_path = './data_preprocessed/train_bureau_raw_data.pkl'
+    # label_path = './data_preprocessed/train_bureau_raw_lbl.pkl'
     data = load_pickle_file(training_data_path)
     label = load_pickle_file(label_path)
     print('Training data has been successfully loaded')
@@ -127,7 +127,7 @@ if __name__ == '__main__':
     x = np.array(x)
     print(x.shape)
     # raise
-    x, y = data_preprocessing(x, y, thres=0.2)
+    x, y = data_preprocessing(x, y, thres=0.1)
 
     lr_acc_ls = []
     rf_acc_ls = []
@@ -138,16 +138,16 @@ if __name__ == '__main__':
     print('Training is starting ... ')
     print('shape of x: {}'.format(x.shape))
     
-    # x, y, x_test, y_test = upsample_pos(x, y, upsample=True)
+    x, y, x_test, y_test = upsample_pos(x, y, upsample=False)
     # x, y, x_test, y_test = rand_train_test(x, y)
     # save_pickle_file(x, "training_data_up.pkl")
     # save_pickle_file(y, "training_lbl_up.pkl")
     # save_pickle_file(x_test, "testing_data_up.pkl")
     # save_pickle_file(y_test, "testing_lbl_up.pkl")
-    x = load_pickle_file('training_data_up.pkl')
-    y = load_pickle_file('training_lbl_up.pkl')
-    x_test = load_pickle_file('testing_data_up.pkl')
-    y_test = load_pickle_file('testing_lbl_up.pkl')
+    # x = load_pickle_file('training_data_up.pkl')
+    # y = load_pickle_file('training_lbl_up.pkl')
+    # x_test = load_pickle_file('testing_data_up.pkl')
+    # y_test = load_pickle_file('testing_lbl_up.pkl')
     # raise
     print('Percentage of zeros in trainset input: {}'.format(np.count_nonzero(x==0)/x.size))
     print('Number of positive examples: {}, negative: {}'.format((y==1).sum(), (y==0).sum()))
@@ -165,31 +165,31 @@ if __name__ == '__main__':
     # clf_svm, svm_acc = train_svm(x_train, y_train, kernel_type='sigmoid', test=[x_test, y_test])
 
     # kmeans
-    NUM_CLUSTERS = 2
-    train_group, test_group = train_kmeans(x_train, y_train, test=[x_test, y_test])
-    for i in range(NUM_CLUSTERS):
-        cur_train_x, cur_train_y = x_train[train_group==i], y_train[train_group==i]
-        cur_test_x, cur_test_y = x_test[test_group==i], y_test[test_group==i]
-        print('length of train set {}, test set {}'.format(len(cur_train_x), len(cur_test_x)))
-        clf_lr, lr_acc = train_lr(cur_train_x, cur_train_y, test=[cur_test_x, cur_test_y])
-        clf_rf, rf_acc = train_rand_forest(cur_train_x, cur_train_y, test=[cur_test_x, cur_test_y])
-    # # Logistic Regression
-    # clf_lr, lr_acc = train_lr(x_train, y_train, test=[x_test, y_test])
-    # lr_acc_ls.append(lr_acc)
-    # # Random Forest
-    # clf_rf, rf_acc = train_rand_forest(x_train, y_train, test=[x_test, y_test])
-    # rf_acc_ls.append(rf_acc)
-    # # # Naive Bayes
-    # clf_nb, nb_acc = train_nb(x_train, y_train, test=[x_test, y_test])
-    # nb_acc_ls.append(nb_acc)
+    # NUM_CLUSTERS = 2
+    # train_group, test_group = train_kmeans(x_train, y_train, test=[x_test, y_test])
+    # for i in range(NUM_CLUSTERS):
+    #     cur_train_x, cur_train_y = x_train[train_group==i], y_train[train_group==i]
+    #     cur_test_x, cur_test_y = x_test[test_group==i], y_test[test_group==i]
+    #     print('length of train set {}, test set {}'.format(len(cur_train_x), len(cur_test_x)))
+    #     clf_lr, lr_acc = train_lr(cur_train_x, cur_train_y, test=[cur_test_x, cur_test_y])
+    #     clf_rf, rf_acc = train_rand_forest(cur_train_x, cur_train_y, test=[cur_test_x, cur_test_y])
+    # Logistic Regression
+    clf_lr, lr_acc = train_lr(x_train, y_train, test=[x_test, y_test])
+    lr_acc_ls.append(lr_acc)
+    # Random Forest
+    clf_rf, rf_acc = train_rand_forest(x_train, y_train, test=[x_test, y_test])
+    rf_acc_ls.append(rf_acc)
+    # # Naive Bayes
+    clf_nb, nb_acc = train_nb(x_train, y_train, test=[x_test, y_test])
+    nb_acc_ls.append(nb_acc)
     
-    # # # Neural Network
-    # clf_mlp, mlp_acc = train_mlp(x_train, y_train, test=[x_test, y_test])
-    # nn_acc_ls.append(mlp_acc)
+    # # Neural Network
+    clf_mlp, mlp_acc = train_mlp(x_train, y_train, test=[x_test, y_test])
+    nn_acc_ls.append(mlp_acc)
     
-    # LGBMClassifier
-    # clf_lgbm, lgbm_acc = train_lgbm(x_train, y_train, test=[x_test, y_test])
-    # lgbm_acc_ls.append(lgbm_acc)
+    LGBMClassifier
+    clf_lgbm, lgbm_acc = train_lgbm(x_train, y_train, test=[x_test, y_test])
+    lgbm_acc_ls.append(lgbm_acc)
 
 
 
