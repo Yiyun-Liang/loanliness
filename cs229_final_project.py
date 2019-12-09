@@ -111,8 +111,8 @@ if __name__ == '__main__':
     label_path = './data_processed/training_lbl.pkl'
     # training_data_path = './data_processed/training_data_processed.pkl'
     # label_path = './data_processed/training_lbl_processed.pkl'
-    # training_data_path = './data_processed/training_data.pkl'
-    # label_path = './data_processed/training_lbl.pkl'
+    training_data_path = './data_preprocessed/train_bureau_raw_data.pkl'
+    label_path = './data_preprocessed/train_bureau_raw_lbl.pkl'
     data = load_pickle_file(training_data_path)
     label = load_pickle_file(label_path)
     print('Training data has been successfully loaded')

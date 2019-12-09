@@ -32,7 +32,7 @@ def save_pickle_file(data, file_name):
     with open(file_name, 'wb') as f:
         pickle.dump(data, f)
 
-def data_preprocessing(x, y, thres=0.3):
+def data_preprocessing(x, y, thres=0.1):
     # x = pd.DataFrame(data=x[:, 1:], index=x[:, 0])
     x = pd.DataFrame(data=x)
     x = x.replace([np.inf], 1e10)
