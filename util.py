@@ -72,11 +72,8 @@ def data_preprocessing(x, y, thres=0.3):
     print(y.shape)
     save_pickle_file(x, "training_data_processed.pkl")
     save_pickle_file(y, "training_lbl_processed.pkl")
-    raise
+    # raise
     return x, y
-
-
-
 
 def read_data(file_path):
     rows = []
