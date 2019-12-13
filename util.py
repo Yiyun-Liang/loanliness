@@ -99,12 +99,38 @@ def get_processed_data(file_path, pkl_file_name):
 def report_test(clf, test, clf_name):
     x_test, y_test = test
     clf_acc = clf.score(x_test, y_test)
+    y_prob = clf.predict_proba(x_test)
     print('The accuracy for ' + clf_name + ' classifier is: '+ str(clf_acc))
     y_pred = clf.predict(x_test)
+    y_adjusted = y_prob[:,0] < 0.6
     print("Prediction Positive Number: " + str(np.sum(y_pred == 1)) + " True Number: " + str(np.sum(y_test == 1)))
     print("Prediction Negative Number: " + str(np.sum(y_pred == 0)) + " True Number: " + str(np.sum(y_test == 0)))
-    print(classification_report(y_test, y_pred))
+    print(classification_report(y_test, y_adjusted))
     return clf_acc
+
+def balance(x, y):
+    all_pos = np.where(y == 1)
+    x_all_pos = x[all_pos[0]]
+    y_all_pos = y[all_pos[0]]
+
+    all_neg = np.where(y == 0)
+    x_all_neg = x[all_neg[0]]
+    y_all_neg = y[all_neg[0]]
+
+    rand_ind = np.arange(len(x_all_neg))
+    np.random.shuffle(rand_ind)
+    x_neg_new = x_all_neg[rand_ind[:len(x_all_pos)]]
+    y_neg_new = y_all_neg[rand_ind[:len(x_all_pos)]]
+
+    x_all_new = np.concatenate((x_neg_new, x_all_pos), axis=0)
+    y_all_new = np.concatenate((y_neg_new, y_all_pos), axis=0)
+
+    rand_shuffle = np.arange(len(x_all_new))
+    np.random.shuffle(rand_shuffle)
+    x_train = x_all_new[rand_shuffle]
+    y_train = y_all_new[rand_shuffle]
+
+    return x_train, y_train
 
 def upsample_pos(x, y, upsample=True):
     # less positive, more negative
