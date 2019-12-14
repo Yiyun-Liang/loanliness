@@ -108,6 +108,10 @@ def report_test(clf, test, clf_name):
 
 def upsample_pos(x, y, upsample=True):
     # less positive, more negative
+    rand_shuffle = np.arange(len(x))
+    np.random.shuffle(rand_shuffle)
+    x = x[rand_shuffle]
+    y = y[rand_shuffle]
     all_pos = np.where(y == 1)
     print(len(all_pos[0]))
     x_all_pos = x[all_pos[0]]
@@ -138,8 +142,8 @@ def upsample_pos(x, y, upsample=True):
         x_train, y_train = sm.fit_sample(x_all_new, y_all_new)
     else:
         # undersample: balance train set
-        x_all_neg = x_all_neg[:int(len(x_all_pos))]
-        y_all_neg = y_all_neg[:int(len(x_all_pos))]
+        x_all_neg = x_all_neg[:1 * int(len(x_all_pos))]
+        y_all_neg = y_all_neg[:1 * int(len(x_all_pos))]
         x_train = np.concatenate((x_all_neg, x_all_pos), axis=0)
         y_train = np.concatenate((y_all_neg, y_all_pos), axis=0)
     

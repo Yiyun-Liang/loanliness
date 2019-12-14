@@ -85,20 +85,7 @@ def train_mlp(x, y, solver='lbfgs', alpha=1e-4, hls=(10, 40, 40),
     return clf_nn
 
 def train_lgbm(x, y, test=None):
-    clf_lgbm = LGBMClassifier(
-        nthread=4,
-        n_estimators=10000,
-        learning_rate=0.02,
-        num_leaves=34,
-        colsample_bytree=0.9497036,
-        subsample=0.8715623,
-        max_depth=8,
-        reg_alpha=0.041545473,
-        reg_lambda=0.0735294,
-        min_split_gain=0.0222415,
-        min_child_weight=39.3259775,
-        silent=-1,
-        verbose=-1, )
+    clf_lgbm = LGBMClassifier()
     clf_lgbm.fit(x, y, verbose=100)
 
     if test is not None:
@@ -107,8 +94,8 @@ def train_lgbm(x, y, test=None):
     return clf_lgbm
 
 if __name__ == '__main__':
-    training_data_path = './data_preprocessed/training_data.pkl'
-    label_path = './data_preprocessed/training_lbl.pkl'
+    training_data_path = './data_processed/training_data.pkl'
+    label_path = './data_processed/training_lbl.pkl'
     # training_data_path = './data_processed/training_data_processed.pkl'
     # label_path = './data_processed/training_lbl_processed.pkl'
     # training_data_path = './data_preprocessed/train_bureau_raw_data.pkl'
@@ -138,7 +125,7 @@ if __name__ == '__main__':
     print('Training is starting ... ')
     print('shape of x: {}'.format(x.shape))
     
-    x, y, x_test, y_test = upsample_pos(x, y, upsample=False)
+    x, y, x_test, y_test = upsample_pos(x, y, upsample=True)
     # x, y, x_test, y_test = rand_train_test(x, y)
     # save_pickle_file(x, "training_data_up.pkl")
     # save_pickle_file(y, "training_lbl_up.pkl")

@@ -1,3 +1,4 @@
+# from https://www.kaggle.com/willkoehrsen/start-here-a-gentle-introduction
 import numpy as np
 import pandas as pd
 import pickle
@@ -563,18 +564,18 @@ app_train_poly = app_train_poly.merge(cash_by_client, on = 'SK_ID_CURR', how = '
 
 
 
-# credit = pd.read_csv('../input/credit_card_balance.csv')
-# credit = convert_types(credit, print_info = True)
-# credit_by_client = aggregate_client(credit, group_vars = ['SK_ID_PREV', 'SK_ID_CURR'], df_names = ['credit', 'client'])
+credit = pd.read_csv('../input/credit_card_balance.csv')
+credit = convert_types(credit, print_info = True)
+credit_by_client = aggregate_client(credit, group_vars = ['SK_ID_PREV', 'SK_ID_CURR'], df_names = ['credit', 'client'])
 
-# app_train_poly = app_train_poly.merge(credit_by_client, on = 'SK_ID_CURR', how = 'left')
+app_train_poly = app_train_poly.merge(credit_by_client, on = 'SK_ID_CURR', how = 'left')
 
-# installments = pd.read_csv('../input/installments_payments.csv')
-# installments = convert_types(installments, print_info = True)
+installments = pd.read_csv('../input/installments_payments.csv')
+installments = convert_types(installments, print_info = True)
 
-# installments_by_client = aggregate_client(installments, group_vars = ['SK_ID_PREV', 'SK_ID_CURR'], df_names = ['installments', 'client'])
+installments_by_client = aggregate_client(installments, group_vars = ['SK_ID_PREV', 'SK_ID_CURR'], df_names = ['installments', 'client'])
 
-# app_train_poly = app_train_poly.merge(installments_by_client, on = 'SK_ID_CURR', how = 'left')
+app_train_poly = app_train_poly.merge(installments_by_client, on = 'SK_ID_CURR', how = 'left')
 
 
 
@@ -602,8 +603,10 @@ print(poly_features[:, 0])
 # print(poly_features_test[:, 0])
 print(train_labels.shape)
 
-save_pickle_file(poly_features, "./data_processed/training_data.pkl")
-save_pickle_file(train_labels, "./data_processed/training_lbl.pkl")
+
+np.savez("./data_processed/training_data.npz", data=poly_features, lbl=train_labels)
+# save_pickle_file(poly_features, "./data_processed/training_data.pkl")
+# save_pickle_file(train_labels, "./data_processed/training_lbl.pkl")
 
 
 
