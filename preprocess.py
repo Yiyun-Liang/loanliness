@@ -4,6 +4,7 @@ import pandas as pd
 import pickle
 
 from sklearn.preprocessing import LabelEncoder
+from util import load_pickle_file
 
 import os
 
@@ -85,8 +86,8 @@ age_groups  = age_data.groupby('YEARS_BINNED').mean()
 
 
 # Make a new dataframe for polynomial features
-poly_features = app_train[['EXT_SOURCE_1', 'EXT_SOURCE_2', 'EXT_SOURCE_3', 'DAYS_BIRTH', 'TARGET']]
-poly_features_test = app_test[['EXT_SOURCE_1', 'EXT_SOURCE_2', 'EXT_SOURCE_3', 'DAYS_BIRTH']]
+poly_features = app_train[['EXT_SOURCE_1', 'EXT_SOURCE_2', 'EXT_SOURCE_3', 'TARGET']]
+poly_features_test = app_test[['EXT_SOURCE_1', 'EXT_SOURCE_2', 'EXT_SOURCE_3']]
 
 # imputer for handling missing values
 from sklearn.preprocessing import Imputer
@@ -118,7 +119,7 @@ print('Polynomial Features shape: ', poly_features.shape)
 # Create a dataframe of the features 
 poly_features = pd.DataFrame(poly_features, 
                              columns = poly_transformer.get_feature_names(['EXT_SOURCE_1', 'EXT_SOURCE_2', 
-                                                                           'EXT_SOURCE_3', 'DAYS_BIRTH']))
+                                                                           'EXT_SOURCE_3']))
 
 # Add in the target
 poly_features['TARGET'] = poly_target
@@ -126,7 +127,7 @@ poly_features['TARGET'] = poly_target
 # Put test features into dataframe
 poly_features_test = pd.DataFrame(poly_features_test, 
                                   columns = poly_transformer.get_feature_names(['EXT_SOURCE_1', 'EXT_SOURCE_2', 
-                                                                                'EXT_SOURCE_3', 'DAYS_BIRTH']))
+                                                                                'EXT_SOURCE_3']))
 
 # Merge polynomial features into training dataframe
 poly_features['SK_ID_CURR'] = app_train['SK_ID_CURR']
@@ -578,10 +579,16 @@ installments_by_client = aggregate_client(installments, group_vars = ['SK_ID_PRE
 app_train_poly = app_train_poly.merge(installments_by_client, on = 'SK_ID_CURR', how = 'left')
 
 
-
-
-
+cols = ['SK_ID_CURR']
+for col in app_train_poly.columns:
+    if col.find('EXT_SOURCE') >= 0:
+        cols.append(col)
+app_train_poly = app_train_poly.drop(columns=cols)
 poly_features_names = list(app_train_poly.columns)
+app_train_poly.to_csv('training.csv', index=False)
+# feat = load_pickle_file('feat_imp.pkl')
+# feat_importances = pd.Series(feat, index=app_train_poly.columns)
+# feat_importances.nlargest(8).plot(kind='barh')
 
 # Impute the polynomial features
 imputer = Imputer(strategy = 'median')
@@ -595,6 +602,8 @@ scaler = MinMaxScaler(feature_range = (0, 1))
 poly_features = scaler.fit_transform(poly_features)
 # poly_features_test = scaler.transform(poly_features_test)
 
+# poly_features.to_csv('data.csv', index=False)
+train_labels.to_csv('labels.csv', index=False)
 
 print(poly_features.shape)
 # print(poly_features_test.shape)
